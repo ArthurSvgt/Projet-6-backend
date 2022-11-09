@@ -1,5 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+
 
 const User = require('./models/user');
 
@@ -22,34 +24,39 @@ app.use((req, res, next) => {
 });
 
 app.post('/api/auth/signup', (req, res, next) => {
-    console.log(req.body);
-    const user = new User({
+    bcrypt.hash(req.body.password, 10)
+    .then(hash => {
+      const user = new User({
         email: req.body.email,
-        password: req.body.password
-    });
-    console.log(user);
-    user.save()
-        .then(
-            () => {
-                res.status(201).json({
-                    message: 'Utilisateur enregistré dans la base de données.'
-                });
-            }
-        ).catch(
-            (error) => {
-                res.status(400).json({
-                    error: error
-                });
-            }
-        );
-});
+        password: hash
+      });
+      user.save()
+        .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
+        .catch(error => res.status(400).json({ error }));
+    })
+    .catch(error => res.status(500).json({ error }))});
 
 
 app.post('/api/auth/login', (req, res, next) => {
-    console.log(req.body);
-    res.status(201).json({
-        message: 'LogIn réussi !'
-    });
+    User.findOne({ email: req.body.email })
+        .then(user => {
+            if (!user) {
+                return res.status(401).json({ message: 'Email ou mot de passe incorrect'});
+            }
+            bcrypt.compare(req.body.password, user.password)
+                .then(valid => {
+                    if (!valid) {
+                        return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
+                    }
+
+                    res.status(200).json({
+                        userId: user._id,
+                        token: 'TOKEN'
+                    });
+                })
+                .catch(error => res.status(500).json({ error }));
+        })
+        .catch(error => res.status(500).json({ error }));
 });
 
 
