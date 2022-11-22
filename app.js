@@ -4,6 +4,8 @@ const bcrypt = require('bcrypt');
 
 
 const User = require('./models/user');
+const Sauce = require('./models/sauce');
+const sauce = require('./models/sauce');
 
 mongoose.connect('mongodb+srv://asouvignet2:AxUllgqFMJLCk1GQ@cluster1.djkzh50.mongodb.net/?retryWrites=true&w=majority',
     {
@@ -23,25 +25,27 @@ app.use((req, res, next) => {
     next();
 });
 
+
 app.post('/api/auth/signup', (req, res, next) => {
     bcrypt.hash(req.body.password, 10)
-    .then(hash => {
-      const user = new User({
-        email: req.body.email,
-        password: hash
-      });
-      user.save()
-        .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
-        .catch(error => res.status(400).json({ error }));
-    })
-    .catch(error => res.status(500).json({ error }))});
+        .then(hash => {
+            const user = new User({
+                email: req.body.email,
+                password: hash
+            });
+            user.save()
+                .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
+                .catch(error => res.status(400).json({ error }));
+        })
+        .catch(error => res.status(500).json({ error }))
+});
 
 
 app.post('/api/auth/login', (req, res, next) => {
     User.findOne({ email: req.body.email })
         .then(user => {
             if (!user) {
-                return res.status(401).json({ message: 'Email ou mot de passe incorrect'});
+                return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
             }
             bcrypt.compare(req.body.password, user.password)
                 .then(valid => {
@@ -57,6 +61,29 @@ app.post('/api/auth/login', (req, res, next) => {
                 .catch(error => res.status(500).json({ error }));
         })
         .catch(error => res.status(500).json({ error }));
+});
+
+app.get('/api/sauces', (req, res, next) => {
+    Sauce.find()
+        .then(sauces => res.status(200).json(sauces))
+        .catch(error => res.status(400).json({ error }));
+});
+
+app.get('/api/sauces/:id', (req, res, next) => {
+    Sauce.findOne({ _id: req.params.id })
+        .then(sauce => res.status(200).json(sauce))
+        .catch(error => res.status(400).json({ error }));
+});
+
+app.post('/api/sauces', (req, res, next) => {
+    console.log('test');
+    const sauce = new Sauce({
+        ...req.body
+    })
+    
+    sauce.save()
+    .then(() => res.status(201).json({ message: 'Sauce ajoutée'}))
+    .catch(error => res.status(400).json({ error }));
 });
 
 
