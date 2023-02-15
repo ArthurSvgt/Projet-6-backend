@@ -55,6 +55,8 @@ exports.deleteSauce = (req, res, next) => {
         });
 };
 
+// like/dislike.
+
 exports.likeDislike = (req, res, next) => {
 
     let like = req.body.like
