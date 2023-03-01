@@ -1,13 +1,14 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const multer = require('./middleware/multer-config');
+const dotenv = require('dotenv').config();
 
 const sauceRoutes = require('./routes/sauce');
 const userRoutes = require('./routes/user');
 const path = require('path');
 
 
-mongoose.connect('mongodb+srv://asouvignet2:AxUllgqFMJLCk1GQ@cluster1.djkzh50.mongodb.net/?retryWrites=true&w=majority',
+mongoose.connect(process.env.MONGOLOGS,
     {
         useNewUrlParser: true,
         useUnifiedTopology: true
